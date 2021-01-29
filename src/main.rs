@@ -4,14 +4,16 @@ mod velocity;
 use bevy::prelude::*;
 
 pub struct Materials {
-    item_material: Handle<ColorMaterial>,
+    item_good_material: Handle<ColorMaterial>,
+    item_bad_material: Handle<ColorMaterial>,
 }
 
 fn setup(commands: &mut Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
     commands
         .spawn(Camera2dBundle::default())
         .insert_resource(Materials {
-            item_material: materials.add(Color::rgb(0.8, 0.8, 0.8).into()),
+            item_good_material: materials.add(Color::rgb(0.1, 0.8, 0.4).into()),
+            item_bad_material: materials.add(Color::rgb(0.8, 0.2, 0.1).into()),
         });
 }
 

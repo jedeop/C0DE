@@ -3,15 +3,18 @@ const ITEM_SIZE: f32 = 50.0;
 use std::time::Duration;
 
 use bevy::prelude::*;
+use rand::Rng;
 
 use crate::{velocity::Velocity, Materials};
 
-pub struct Item;
+pub struct Item {
+    is_good: bool,
+}
 
 pub struct ItemSpawnTimer(Timer);
 impl Default for ItemSpawnTimer {
     fn default() -> Self {
-        Self(Timer::new(Duration::from_millis(1000), true))
+        Self(Timer::new(Duration::from_millis(500), true))
     }
 }
 
@@ -26,15 +29,22 @@ pub fn spawn_item(
         let window = windows.get_primary().unwrap();
         let x = (rand::random::<f32>() * window.width()) - (window.width() / 2.0);
         let y = window.height() / 2.0 + ITEM_SIZE / 2.0;
+
+        let is_good = rand::thread_rng().gen_range(0..3) == 0;
+        let material = if is_good {
+            materials.item_good_material.clone()
+        } else {
+            materials.item_bad_material.clone()
+        };
         commands
             .spawn(SpriteBundle {
-                material: materials.item_material.clone(),
+                material: material,
                 sprite: Sprite::new(Vec2::new(ITEM_SIZE, ITEM_SIZE)),
                 transform: Transform::from_translation(Vec3::new(x, y, 0.0)),
                 ..Default::default()
             })
-            .with(Item)
-            .with(Velocity(Vec3::new(0.0, -1.0, 0.0) * 150.0));
+            .with(Item { is_good })
+            .with(Velocity(Vec3::new(0.0, 0.0, 0.0)));
     }
 }
 
@@ -56,6 +66,6 @@ pub fn despawn_item(
 pub fn accelerate_item(mut velocities: Query<&mut Velocity, With<Item>>, time: Res<Time>) {
     let delta_seconds = f32::min(0.2, time.delta_seconds());
     for mut velocity in velocities.iter_mut() {
-        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 750.0 * delta_seconds;
+        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 1000.0 * delta_seconds;
     }
 }
