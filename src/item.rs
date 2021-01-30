@@ -5,10 +5,11 @@ use std::time::Duration;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use rand::Rng;
 
-use crate::{goal_line::GoalLine, velocity::Velocity, Materials};
+use crate::{Materials, Score, goal_line::GoalLine, velocity::Velocity};
 
-pub struct Item {
-    is_good: bool,
+pub enum Item {
+    GOOD,
+    BAD,
 }
 
 pub struct ItemSpawnTimer(Timer);
@@ -30,11 +31,10 @@ pub fn spawn_item(
         let x = (rand::random::<f32>() * window.width()) - (window.width() / 2.0);
         let y = window.height() / 2.0 + ITEM_SIZE / 2.0;
 
-        let is_good = rand::thread_rng().gen_range(0..3) == 0;
-        let material = if is_good {
-            materials.item_good_material.clone()
+        let (item, material) = if rand::thread_rng().gen_range(0..3) == 0 {
+            (Item::GOOD, materials.item_good_material.clone())
         } else {
-            materials.item_bad_material.clone()
+            (Item::BAD, materials.item_bad_material.clone())
         };
         commands
             .spawn(SpriteBundle {
@@ -43,19 +43,20 @@ pub fn spawn_item(
                 transform: Transform::from_translation(Vec3::new(x, y, 0.0)),
                 ..Default::default()
             })
-            .with(Item { is_good })
+            .with(item)
             .with(Velocity(Vec3::new(0.0, 0.0, 0.0)));
     }
 }
 
 pub fn item_collision(
     commands: &mut Commands,
-    mut items: Query<(Entity, &Transform, &Sprite), With<Item>>,
+    mut items: Query<(Entity, &Transform, &Sprite, &Item)>,
     goal_lines: Query<(&Transform, &Sprite), With<GoalLine>>,
     windows: Res<Windows>,
+    mut score: ResMut<Score>,
 ) {
     let window = windows.get_primary().unwrap();
-    for (entity, transform, sprite) in items.iter_mut() {
+    for (entity, transform, sprite, item) in items.iter_mut() {
         if transform.translation.y < 0.0 - window.height() / 2.0 - ITEM_SIZE / 2.0 {
             commands.despawn(entity);
         }
@@ -67,8 +68,11 @@ pub fn item_collision(
                 goal_line_transform.translation,
                 goal_line_sprite.size,
             ) {
-                // TODO: add score
-                println!("score");
+                match item {
+                    Item::GOOD => score.0 += 1,
+                    Item::BAD => if score.0 != 0 { score.0 -= 1 },
+                };
+                println!("score: {}", score.0);
                 commands.despawn(entity);
             }
         }

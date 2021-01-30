@@ -9,6 +9,8 @@ pub struct Materials {
     item_bad_material: Handle<ColorMaterial>,
 }
 
+pub struct Score(u32);
+
 fn setup(commands: &mut Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
     commands
         .spawn(Camera2dBundle::default())
@@ -25,6 +27,7 @@ fn main() {
             ..Default::default()
         })
         .add_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1).into()))
+        .add_resource(Score(0))
         .add_startup_system(setup.system())
         .add_startup_stage(
             "setup",
