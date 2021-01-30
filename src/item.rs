@@ -5,7 +5,7 @@ use std::time::Duration;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use rand::Rng;
 
-use crate::{Materials, Score, goal_line::GoalLine, velocity::Velocity};
+use crate::{goal_line::GoalLine, velocity::Velocity, Materials, Score};
 
 pub enum Item {
     GOOD,
@@ -15,7 +15,7 @@ pub enum Item {
 pub struct ItemSpawnTimer(Timer);
 impl Default for ItemSpawnTimer {
     fn default() -> Self {
-        Self(Timer::new(Duration::from_millis(750), true))
+        Self(Timer::new(Duration::from_millis(650), true))
     }
 }
 
@@ -31,7 +31,7 @@ pub fn spawn_item(
         let x = (rand::random::<f32>() * window.width()) - (window.width() / 2.0);
         let y = window.height() / 2.0 + ITEM_SIZE / 2.0;
 
-        let (item, material) = if rand::thread_rng().gen_range(0..3) == 0 {
+        let (item, material) = if rand::thread_rng().gen_range(0..2) == 0 {
             (Item::GOOD, materials.item_good_material.clone())
         } else {
             (Item::BAD, materials.item_bad_material.clone())
@@ -70,9 +70,12 @@ pub fn item_collision(
             ) {
                 match item {
                     Item::GOOD => score.0 += 1,
-                    Item::BAD => if score.0 != 0 { score.0 -= 1 },
+                    Item::BAD => {
+                        if score.0 != 0 {
+                            score.0 -= 1
+                        }
+                    }
                 };
-                println!("score: {}", score.0);
                 commands.despawn(entity);
             }
         }
@@ -82,6 +85,6 @@ pub fn item_collision(
 pub fn accelerate_item(mut velocities: Query<&mut Velocity, With<Item>>, time: Res<Time>) {
     let delta = time.delta_seconds();
     for mut velocity in velocities.iter_mut() {
-        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 800.0 * delta;
+        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 900.0 * delta;
     }
 }
