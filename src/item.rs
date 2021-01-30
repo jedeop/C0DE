@@ -2,10 +2,10 @@ const ITEM_SIZE: f32 = 50.0;
 
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 use rand::Rng;
 
-use crate::{velocity::Velocity, Materials};
+use crate::{goal_line::GoalLine, velocity::Velocity, Materials};
 
 pub struct Item {
     is_good: bool,
@@ -38,7 +38,7 @@ pub fn spawn_item(
         };
         commands
             .spawn(SpriteBundle {
-                material: material,
+                material,
                 sprite: Sprite::new(Vec2::new(ITEM_SIZE, ITEM_SIZE)),
                 transform: Transform::from_translation(Vec3::new(x, y, 0.0)),
                 ..Default::default()
@@ -48,23 +48,35 @@ pub fn spawn_item(
     }
 }
 
-/// despawn item if item is out of window.
-/// FIXME: maybe not need if score system is made.
-pub fn despawn_item(
+pub fn item_collision(
     commands: &mut Commands,
-    mut items: Query<(Entity, &Transform), With<Item>>,
+    mut items: Query<(Entity, &Transform, &Sprite), With<Item>>,
+    goal_lines: Query<(&Transform, &Sprite), With<GoalLine>>,
     windows: Res<Windows>,
 ) {
     let window = windows.get_primary().unwrap();
-    for (entity, transform) in items.iter_mut() {
+    for (entity, transform, sprite) in items.iter_mut() {
         if transform.translation.y < 0.0 - window.height() / 2.0 - ITEM_SIZE / 2.0 {
             commands.despawn(entity);
+        }
+
+        for (goal_line_transform, goal_line_sprite) in goal_lines.iter() {
+            if let Some(_) = collide(
+                transform.translation,
+                sprite.size,
+                goal_line_transform.translation,
+                goal_line_sprite.size,
+            ) {
+                // TODO: add score
+                println!("score");
+                commands.despawn(entity);
+            }
         }
     }
 }
 
 pub fn accelerate_item(mut velocities: Query<&mut Velocity, With<Item>>, time: Res<Time>) {
-    let delta =  time.delta_seconds();
+    let delta = time.delta_seconds();
     for mut velocity in velocities.iter_mut() {
         velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 800.0 * delta;
     }

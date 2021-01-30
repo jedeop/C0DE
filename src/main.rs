@@ -31,10 +31,10 @@ fn main() {
             SystemStage::single(goal_line::spawn_goal_line.system()),
         )
         .add_system(item::spawn_item.system())
-        .add_system(item::despawn_item.system())
+        .add_system(item::item_collision.system())
         .add_system(item::accelerate_item.system())
-        .add_system(velocity::movement.system())
         .add_system(goal_line::goal_line_movement.system())
+        .add_system(velocity::movement.system())
         .add_plugins(DefaultPlugins)
         .run()
 }
