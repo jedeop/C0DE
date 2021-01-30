@@ -14,7 +14,7 @@ pub struct Item {
 pub struct ItemSpawnTimer(Timer);
 impl Default for ItemSpawnTimer {
     fn default() -> Self {
-        Self(Timer::new(Duration::from_millis(500), true))
+        Self(Timer::new(Duration::from_millis(750), true))
     }
 }
 
@@ -64,8 +64,8 @@ pub fn despawn_item(
 }
 
 pub fn accelerate_item(mut velocities: Query<&mut Velocity, With<Item>>, time: Res<Time>) {
-    let delta_seconds = f32::min(0.2, time.delta_seconds());
+    let delta =  time.delta_seconds();
     for mut velocity in velocities.iter_mut() {
-        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 1000.0 * delta_seconds;
+        velocity.0 += Vec3::new(0.0, -1.0, 0.0) * 800.0 * delta;
     }
 }

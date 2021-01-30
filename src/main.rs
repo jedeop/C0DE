@@ -1,3 +1,4 @@
+mod goal_line;
 mod item;
 mod velocity;
 
@@ -12,8 +13,8 @@ fn setup(commands: &mut Commands, mut materials: ResMut<Assets<ColorMaterial>>) 
     commands
         .spawn(Camera2dBundle::default())
         .insert_resource(Materials {
-            item_good_material: materials.add(Color::rgb(0.1, 0.8, 0.4).into()),
-            item_bad_material: materials.add(Color::rgb(0.8, 0.2, 0.1).into()),
+            item_good_material: materials.add(Color::rgb(0.3, 0.9, 0.6).into()),
+            item_bad_material: materials.add(Color::rgb(0.9, 0.3, 0.6).into()),
         });
 }
 
@@ -25,10 +26,15 @@ fn main() {
         })
         .add_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1).into()))
         .add_startup_system(setup.system())
+        .add_startup_stage(
+            "setup",
+            SystemStage::single(goal_line::spawn_goal_line.system()),
+        )
         .add_system(item::spawn_item.system())
         .add_system(item::despawn_item.system())
         .add_system(item::accelerate_item.system())
         .add_system(velocity::movement.system())
+        .add_system(goal_line::goal_line_movement.system())
         .add_plugins(DefaultPlugins)
         .run()
 }
